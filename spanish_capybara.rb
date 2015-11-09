@@ -2,7 +2,9 @@ require 'capybara'
 require 'capybara/poltergeist'
 #require 'pry'
 require 'pony'
+
 require_relative 'clients'
+require_relative 'command_line_options'
 
 Pony.options = { :via => :smtp,
   :via_options => {
@@ -347,26 +349,6 @@ end
   #binding.pry
   # session.save_and_open_page 
   
-require 'optparse'
-args = {scenario: 'BarcelonaExtranjero', engine: 'capybara'}
-
-OptionParser.new do |opts|
-  opts.banner = "Порядок вызова капибары: spanish_capybara.rb [options]"
-
-  opts.on("-s", "-scenario", "Название сценария для исполнения") do |scenario|
-    args[:scenario] = scenario
-  end
-
-  opts.on("-e", "-engine", "selenium или poltergeist") do |engine|
-    args[:engine] = engine
-  end
-
-  opts.on_tail("-h", "-help", "Показать эту справку") do
-    puts opts
-    exit
-  end
-end.parse!
-
 #Capybara.configure do |config|
   #config.match = :one
   #config.exact_options = true
@@ -374,23 +356,30 @@ end.parse!
   #config.visible_text_only = true
 #end
 
-Capybara.default_max_wait_time = 20
+
+options = SpanishCapybaraOptions.new.get_options(ARGV)
+
+Capybara.default_max_wait_time = options.capybara_default_wait_time
 Capybara.register_driver :poltergeist do |app|
-  Capybara::Poltergeist::Driver.new(app, 
-    {debug: false, js_errors: false, timeout: 20000, 
-      phantomjs_options: ['--debug=no', '--load-images=yes', '--ignore-ssl-errors=yes', '--ssl-protocol=any']})
+  Capybara::Poltergeist::Driver.new(app, {
+    debug: options.poltergeist_debug,
+    js_errors: options.poltergeist_js_errors, 
+    timeout: options.poltergeist_default_wait_time, 
+    phantomjs_options: options.phantomjs_options
+    }
+  )
 end
 
-drivers = {"selenium" => :selenium, "poltergeist" => :poltergeist}
-unless (drivers.keys.include? args[:engine])
-  puts "Specified engine not supported. Exit now"
-  exit(1)
-end
-
-session = Capybara::Session.new(drivers[args[:engine]])
+session = Capybara::Session.new(options.engine)
 
 client_base = ClientsBase.new
-appointment = client_base.get_client_by_id('spajic')
+appointment = client_base.get_client_by_id(options.client)
+
+unless appointment
+  puts "Client with id #{options.client} not found in client_base."
+  puts "Exit now"
+  eixt(1)
+end
 
 captcha_solver = CaptchaSolverByHand.new
 
@@ -415,14 +404,16 @@ steps_madrid_extranjero = [
   Step5Final.new("Wait on Final Page")]
 
 steps_scenarios = {
-  "BarcelonaExtranjero" => steps_barcelona_extranjero, 
-  "MadridExtranjero" => steps_madrid_extranjero }
-  
-if !steps_scenarios[args[:scenario]]
-  puts "Scenario #{args[:scenario]} not found! Exit now."
-  exit(1)
-end
+  :BarcelonaExtranjero => steps_barcelona_extranjero, 
+  :MadridExtranjero => steps_madrid_extranjero }
+
 
 SpanishCapybara = Scenario.new(
-  "SpanishCapybara", session, args[:engine], appointment, captcha_solver, steps_scenarios[args[:scenario]])
+  "SpanishCapybara", 
+  session, 
+  options.engine, 
+  appointment, 
+  captcha_solver, 
+  steps_scenarios[options.scenario]
+)
 SpanishCapybara.step
