@@ -2,6 +2,7 @@ require 'capybara'
 require 'capybara/poltergeist'
 #require 'pry'
 require 'pony'
+require_relative 'clients'
 
 Pony.options = { :via => :smtp,
   :via_options => {
@@ -33,17 +34,6 @@ class CaptchaSolverByHand
     @result = gets.chomp!
     puts "You entered #{@result}, thank you"
     @result
-  end
-end
-
-class Appointment
-  attr_reader :name, :pasport, :country, :phone, :mail
-  def initialize(name, pasport, country, phone, mail)
-    @name = name
-    @pasport = pasport
-    @country = country
-    @phone = phone
-    @mail = mail
   end
 end
 
@@ -398,7 +388,10 @@ unless (drivers.keys.include? args[:engine])
 end
 
 session = Capybara::Session.new(drivers[args[:engine]])
-appointment = client3_1
+
+client_base = ClientsBase.new
+appointment = client_base.get_client_by_id('spajic')
+
 captcha_solver = CaptchaSolverByHand.new
 
 steps_barcelona_extranjero = [
