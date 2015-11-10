@@ -313,7 +313,6 @@ class DatetimeManagerOfAvailableCitas
 
   attr_reader :datetimes
   attr_accessor :client_date_start, :client_date_finish, :session
-  private :client_date_start, :client_date_finish, :session
 
   def initialize(session, client_date_start, client_date_finish)
     self.session = session
@@ -323,7 +322,7 @@ class DatetimeManagerOfAvailableCitas
   end
 
   def date_in_client_range?(d)
-    puts "PROC CALLED!"
+    puts "DATE PREDICATE CALLED!"
     d >= self.client_date_start and d <= self.client_date_finish
   end
 
@@ -346,7 +345,7 @@ class DatetimeManagerOfAvailableCitas
 
   def has_appropriate_datetime?
     binding.pry
-    @datetimes.any? &method(:date_in_client_range?)
+    datetimes.any? &method(:date_in_client_range?)
   end
 
   def get_appropriate_datetimes
