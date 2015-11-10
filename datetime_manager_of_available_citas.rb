@@ -31,8 +31,8 @@ class DatetimeManagerOfAvailableCitas
     @datetimes = []
     n = 1
     s = @session
-    until Capybara.using_wait_time(3){
-    s.has_no_xpath? ("//td[@id='cita_#{n}']") }
+    
+    while Capybara.using_wait_time(0.1){s.has_xpath? ("//td[@id='cita_#{n}']")}
       c = s.find(:xpath, "//td[@id='cita_#{n}']")
       m = /(\d\d)\/(\d\d)\/(\d{4})/.match(c.text)
       dd, mm, yy = m[1].to_i, m[2].to_i, m[3].to_i
@@ -42,8 +42,7 @@ class DatetimeManagerOfAvailableCitas
       n += 1
     end
   end
-  private :get_available_datetimes_from_session
-
+  
   def has_appropriate_datetime?
     #binding.pry
     datetimes.any? &method(:date_in_client_range?)
