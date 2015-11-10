@@ -50,11 +50,12 @@ class DatetimeManagerOfAvailableCitas
   end
 
   def get_appropriate_datetimes
-    @datetimes.select {@check_date_in_range_predicate}
+    datetimes.select &method(:date_in_client_range?)
   end
 
   def get_first_appropriate_cita_number
-    @datetimes.find_index {@check_date_in_range_predicate} + 1
+    return nil unless has_appropriate_datetime?
+    datetimes.find_index(&method(:date_in_client_range?)) + 1
   end
 
   def choose_first_appropriate_datetime
