@@ -39,7 +39,7 @@ class SpanishCapybaraOptions
   end
 
   def check_scenario()
-    supported_scenarios = [:BarcelonaExtranjero, :MadridExtranjero]
+    supported_scenarios = [:BarcelonaRegresso, :BarcelonaExtranjero, :MadridExtranjero]
     unless supported_scenarios.include? options.scenario
       puts "Указанный сценарий #{options.scenario} не поддерживается" 
       puts "Доступны следующие сценарии: #{supported_scenarios.to_s}" 

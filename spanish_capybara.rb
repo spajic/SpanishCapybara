@@ -179,19 +179,20 @@ class StepsBeforePassportMadridExtranjero < Step
   end
 end
 
-=begin
 class FillPassportRegresso < Step
-  def step (session, captcha_solver)
+  def step
   	s.find(:xpath, '//input[@id="rdbTipoDoc" and @value="PASAPORTE"]').click
-    s.fill_in('txtNieAux', :with => '4508906727')
-    s.fill_in('txtDesCitado', :with => 'IVAN IVANOV')
-    s.fill_in('txtAnnoCitado', :with => '1987')
-    s.fill_in('txtFecha', :with => '01/01/2015')
+    s.fill_in('txtNieAux', :with => appointment.pasport)
+    s.fill_in('txtDesCitado', :with => appointment.name)
+    s.fill_in('txtAnnoCitado', :with => appointment.year_of_birth)
+    s.fill_in('txtFecha', :with => appointment.fecha_de_caducidad.strftime("%d/%m/%Y"))
+    save_and_open_screenshot
+    send_mail('SpanishCapybara', 'Enter Captcha, please!')
     s.fill_in('txtCaptcha', :with => captcha_solver.solve)
     s.click_on("Aceptar")
   end
 end
-=end
+
 
 class FillPassportExtranjero < Step
   def step
@@ -256,8 +257,8 @@ class Step1SolicitarCitaBarcelona < Step
       
       if no_office
         puts "No sorry message, but no office either" 
-        save_page
-        save_screenshot
+        #save_page
+        #save_screenshot
         no_office = false
       end
       sleep_time = rand 10
@@ -401,6 +402,16 @@ steps_barcelona_extranjero = [
   Step4Confirm.new("Confirm and Send Notification to email"),
   Step5Final.new("Wait on Final Page")]
 
+steps_barcelona_regresso = [
+  Step0.new("0 - visit site"),
+  StepsBeforePassportBarcelonaRegresso.new("Before passport Barcelona Regresso"),
+  FillPassportRegresso.new("Fill Passport Regresso"),
+  Step1SolicitarCitaBarcelona.new("Multiple Tries to Solicitar Cita"), 
+  Step2EnterPhoneAndMail.new("Enter phone and email"),
+  Step3ChooseCita.new("Choose Cita"),
+  Step4Confirm.new("Confirm and Send Notification to email"),
+  Step5Final.new("Wait on Final Page")]
+
 steps_madrid_extranjero = [
   Step0.new("0 - visit site"),
   StepsBeforePassportMadridExtranjero.new("Before passport Madrid Extranjero"),
@@ -412,6 +423,7 @@ steps_madrid_extranjero = [
   Step5Final.new("Wait on Final Page")]
 
 steps_scenarios = {
+  :BarcelonaRegresso => steps_barcelona_regresso,
   :BarcelonaExtranjero => steps_barcelona_extranjero, 
   :MadridExtranjero => steps_madrid_extranjero }
 
