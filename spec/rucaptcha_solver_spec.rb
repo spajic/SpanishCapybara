@@ -6,7 +6,7 @@ RSpec.describe RuCaptchaSolver do
   end
 
   describe '#solve' do
-    skip 'solves test image #1 correctly' do
+    it 'solves test image #1 correctly' do
       expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
     end
   end  
@@ -21,7 +21,6 @@ RSpec.describe CaptchaSolverByHand do
   describe '#solve' do
     it 'solves test image #1 correctly' do
       allow(@s).to receive :ask_hand_input
-      allow(@s).to receive :thanks_for_hand_input
       allow(@s).to receive(:get_hand_input).and_return('BCAXBE')
       expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
     end
