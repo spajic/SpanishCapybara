@@ -1,32 +1,16 @@
 require 'capybara'
 require 'capybara/poltergeist'
 require 'pry'
-
+require 'open-uri'
 
 require_relative 'clients'
 require_relative 'command_line_options'
 require_relative 'datetime_manager_of_available_citas'
 require_relative 'mailer'
+require_relative 'captchas'
 
 def mytime
   (Time.now + 11*3600).strftime("%H:%M:%S")
-end
-
-class CaptchaSolverByHand  
-  attr_reader :result
-  
-  def initialize
-    @result = ""
-  end
-
-  def solve
-    # todo: 
-    # сохранить капчу в файл и открыть
-    print "Enter CAPTHCA value, please: "
-    @result = gets.chomp!
-    puts "You entered #{@result}, thank you"
-    @result
-  end
 end
 
 class Scenario
@@ -156,6 +140,16 @@ class StepsBeforePassportBarcelonaExtranjero < Step
   end
 end
 
+class StepsBeforePassportBarcelonaIncidencia < Step
+  def step
+      s.select("Barcelona")
+      s.click_on("Aceptar")
+      s.select "INCIDENCIAS TRÁMITES EXTRANJERÍA"
+      s.click_on("Aceptar")
+      s.click_on("ENTRAR")
+  end
+end
+
 class StepsBeforePassportMadridRegresso < Step
   def step
       s.select("Madrid")
@@ -185,14 +179,13 @@ class FillPassportRegresso < Step
     s.fill_in('txtNieAux', :with => appointment.pasport)
     s.fill_in('txtDesCitado', :with => appointment.name)
     s.fill_in('txtAnnoCitado', :with => appointment.year_of_birth)
-    s.fill_in('txtFecha', :with => appointment.fecha_de_caducidad.strftime("%d/%m/%Y"))
-    save_and_open_screenshot
-    send_mail('SpanishCapybara', 'Enter Captcha, please!')
-    s.fill_in('txtCaptcha', :with => captcha_solver.solve)
+    s.fill_in('txtFecha', :with => appointment.fecha_de_caducidad.strftime("%d/%m/%Y")) if appointment.fecha_de_caducidad
+    captcha_path = "CapybaraStash/captchas/#{Time.now} r#{rand(1000)}captcha.jpg"
+    s.driver.save_screenshot(captcha_path, :selector => '#contenedorCapturador img')
+    s.fill_in('txtCaptcha', :with => captcha_solver.solve(captcha_path))
     s.click_on("Aceptar")
   end
 end
-
 
 class FillPassportExtranjero < Step
   def step
@@ -200,9 +193,22 @@ class FillPassportExtranjero < Step
     s.fill_in('txtNieAux', :with => appointment.pasport)
     s.fill_in('txtDesCitado', :with => appointment.name)
     s.select appointment.country
+    captcha_path = "CapybaraStash/captchas/#{Time.now} r#{rand(1000)}captcha.jpg"
+    s.driver.save_screenshot(captcha_path, :selector => '#contenedorCapturador img')
+    s.fill_in('txtCaptcha', :with => captcha_solver.solve(captcha_path))
+    s.click_on("Aceptar")
     save_and_open_screenshot
-    send_mail('SpanishCapybara', 'Enter Captcha, please!')
-    s.fill_in('txtCaptcha', :with => captcha_solver.solve)
+  end
+end
+
+class FillPassportIncidencia < Step
+  def step
+    s.find(:xpath, '//input[@id="rdbTipoDoc" and @value="PASAPORTE"]').click
+    s.fill_in('txtNieAux', :with => appointment.pasport)
+    s.fill_in('txtDesCitado', :with => appointment.name)
+    captcha_path = "CapybaraStash/captchas/#{Time.now} r#{rand(1000)}captcha.jpg"
+    s.driver.save_screenshot(captcha_path, :selector => '#contenedorCapturador img')
+    s.fill_in('txtCaptcha', :with => captcha_solver.solve(captcha_path))
     s.click_on("Aceptar")
   end
 end
@@ -242,6 +248,7 @@ end
 # <option value="16">RAMBLA GUIPUSCOA, 74 (BARCELONA)</option>
 class Step1SolicitarCitaBarcelona < Step
   def step
+    save_and_open_screenshot
     s.click_on("SOLICITAR CITA")  
     tries = 1
     save_screenshot
@@ -275,12 +282,63 @@ class Step1SolicitarCitaBarcelona < Step
   end
 end
 
+# Нужен конкретный офис: Paseo de Sant Joan
+class Step1SolicitarCitaIncidencia < Step
+  def step
+    s.click_on("SOLICITAR CITA")  
+    tries = 1
+    save_screenshot
+    save_page
+    
+    sorry_message = 'En este momento no hay citas disponibles.'
+    our_office = "Paseo de Sant Joan"
+    no_office = false
+    #while s.has_selector?(:xpath, '//input[@value="Siguiente" and @type="button"]', visible: true)
+    while Capybara.using_wait_time(3) {
+        s.has_content?(sorry_message) || 
+        (no_office = s.has_no_xpath?('//select/option[contains(text(), "DE SANT JOAN")]'))} 
+      
+      if no_office
+        puts "No sorry message, but no office either" 
+        save_page
+        save_screenshot
+        no_office = false
+      end
+      sleep_time = rand 10
+      puts "#{mytime}, try #{tries} - #{sorry_message} Sleep for #{sleep_time}s and try again!"
+      tries += 1
+      sleep sleep_time
+      s.click_on("Volver")
+      s.click_on("SOLICITAR CITA")  
+    end
+    s.select('//select/option[contains(text(), "DE SANT JOAN")]')
+    puts "HOORAY!!! Step 1 successfull"
+    save_and_open_screenshot
+    save_page
+    s.click_on("Siguiente")
+  end
+end
+
 class Step2EnterPhoneAndMail < Step
   def step
     s.fill_in('txtTelefonoCitado', :with => appointment.phone)
     s.fill_in('emailUNO', :with => appointment.mail)
     s.fill_in('emailDOS', :with => appointment.mail)
     save_screenshot
+    save_page
+    s.click_on("Siguiente")
+  end
+end
+
+class Step2EnterPhoneMailAndMoreIncidencia < Step
+  def step
+    s.fill_in('txtTelefonoCitado', :with => appointment.phone)
+    s.fill_in('emailUNO', :with => appointment.mail)
+    s.fill_in('emailDOS', :with => appointment.mail)
+    s.fill_in('txtIdExtranjero', :with => appointment.pasport)
+    s.fill_in('txtDesExtranjero', :with => appointment.name)
+    s.fill_in('txtObservaciones', :with => "Resolución el problema con documentación del solicitud")
+    save_and_open_screenshot
     save_page
     s.click_on("Siguiente")
   end
@@ -303,8 +361,10 @@ class Step3ChooseCita < Step
       dm.choose_first_appropriate_datetime
       s.click_on("Siguiente")
     else
-      puts "Has following datetimes: #{dm.datetimes}"
+      puts "!!!HAS FOLLOWING DATETIMES!!!: #{dm.datetimes}"
       puts "But nothing is suitable for client!"
+      send_mail("SpanishCapybara", "DATE IS NOT SUITABLE #{dm.datetimes}")
+      raise 'NO SUITABLE DATES!'
       puts "ATTEMPT TO TAKE FIRST ONE ANYWAY!"
       s.find(:xpath, 
         '//input[@type="radio" and @title="Seleccionar CITA 1"]').click
@@ -379,6 +439,16 @@ Capybara.register_driver :poltergeist do |app|
   )
 end
 
+  #Capybara.register_driver :selenium do |app|
+  #  profile = Selenium::WebDriver::Firefox::Profile.new
+
+    #profile["network.proxy.type"] = 1 # manual proxy config
+    #profile["network.proxy.http"] = "83.231.34.132"
+    #profile["network.proxy.http_port"] = 3128
+
+    #Capybara::Selenium::Driver.new(app, :profile => profile)
+  #end
+
 session = Capybara::Session.new(options.engine)
 
 client_base = ClientsBase.new
@@ -390,7 +460,8 @@ unless appointment
   exit(1)
 end
 
-captcha_solver = CaptchaSolverByHand.new
+#captcha_solver = CaptchaSolverByHand.new
+captcha_solver = RuCaptchaSolver.new
 
 steps_barcelona_extranjero = [
   Step0.new("0 - visit site"),
@@ -422,10 +493,22 @@ steps_madrid_extranjero = [
   Step4WaitUserToConfirm.new("Wait User to Confirm"),
   Step5Final.new("Wait on Final Page")]
 
+steps_barcelona_incidencia = [
+  Step0.new("0 - visit site"),
+  StepsBeforePassportBarcelonaIncidencia.new("Before passport Barcelona Incidencia"),
+  FillPassportIncidencia.new("Fill passport for Incidencia"),
+  Step1SolicitarCitaIncidencia.new("Multiple tries to solicitar cit in Paseo de Sant Joan"),
+  Step2EnterPhoneMailAndMoreIncidencia.new("Enter phone and email"),
+  Step3ChooseCita.new("Choose cita time"),
+  Step4Confirm.new("Confirm"),
+  Step5Final.new("Save success page and send notification email")
+]
+
 steps_scenarios = {
   :BarcelonaRegresso => steps_barcelona_regresso,
   :BarcelonaExtranjero => steps_barcelona_extranjero, 
-  :MadridExtranjero => steps_madrid_extranjero }
+  :MadridExtranjero => steps_madrid_extranjero,
+  :Incidencia => steps_barcelona_incidencia }
 
 
 SpanishCapybara = Scenario.new(

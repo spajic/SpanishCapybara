@@ -26,7 +26,8 @@ class SpanishCapybaraOptions
     options.poltergeist_default_wait_time = 20 * 1000
     options.poltergeist_debug = false
     options.poltergeist_js_errors = false
-    options.phantomjs_options = ['--debug=no', '--load-images=yes', '--ignore-ssl-errors=yes', '--ssl-protocol=any']
+    options.phantomjs_options = ['--debug=no', '--load-images=yes', 
+      '--ignore-ssl-errors=yes', '--ssl-protocol=any', '--proxy=83.231.34.132:3128']
   end
 
   def check_engine
@@ -39,7 +40,7 @@ class SpanishCapybaraOptions
   end
 
   def check_scenario()
-    supported_scenarios = [:BarcelonaRegresso, :BarcelonaExtranjero, :MadridExtranjero]
+    supported_scenarios = [:BarcelonaRegresso, :BarcelonaExtranjero, :MadridExtranjero, :Incidencia]
     unless supported_scenarios.include? options.scenario
       puts "Указанный сценарий #{options.scenario} не поддерживается" 
       puts "Доступны следующие сценарии: #{supported_scenarios.to_s}" 
