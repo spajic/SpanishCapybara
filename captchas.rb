@@ -12,7 +12,7 @@ class CaptchaSolverByHand
     get_hand_input
   end
 
-  
+  private
     def show_capthca(path_to_captcha_image_file)
       Launchy.open(path_to_captcha_image_file)
     end
