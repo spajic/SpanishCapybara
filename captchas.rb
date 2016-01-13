@@ -7,9 +7,11 @@ class RuCaptchaSolver
   end
 
   def solve(path_to_captcha_image_file)
+    puts 'REQUEST RUCAPTCHA'
     path_to_captcha = File.expand_path path_to_captcha_image_file
     captcha_id = @api.send_captcha_for_solving(path_to_captcha, params: {language: 2})
     solved_captcha = @api.get_solved_captcha captcha_id
+    puts "RUCAPTHCA REQUEST SUCCESS"
     solved_captcha.upcase
   end
 end
