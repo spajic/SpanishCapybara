@@ -15,14 +15,18 @@ end
 
 RSpec.describe CaptchaSolverByHand do
   before do
-  	  @s = CaptchaSolverByHand.new
-	  allow(@s).to receive :ask_hand_input
-	  allow(@s).to receive :thanks_for_hand_input
+  	@s = CaptchaSolverByHand.new
   end
 
   describe '#solve' do
     it 'solves test image #1 correctly' do
-	  allow(@s).to receive(:get_hand_input).and_return('BCAXBE')
+      allow(@s).to receive :ask_hand_input
+      allow(@s).to receive :thanks_for_hand_input
+      allow(@s).to receive(:get_hand_input).and_return('BCAXBE')
+      expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
+    end
+
+    skip 'solves captcha in manual mode' do
       expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
     end
   end  
