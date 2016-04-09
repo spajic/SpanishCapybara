@@ -10,7 +10,7 @@ require_relative 'mailer'
 require_relative 'captchas'
 
 def mytime
-  (Time.now + 11*3600).strftime("%H:%M:%S")
+  DateTime.now.to_time
 end
 
 class Scenario
@@ -49,20 +49,23 @@ class Step
   attr_writer :scenario
 
   def initialize(name)
-    @FolderToSave = "CapybaraStash-#{mytime}"
+    @folder_to_save = 'CapybaraStash'
     @name = name
   end
 
-  def s()
+  def s
     @scenario.session
   end
-  def appointment()
+
+  def appointment
     @scenario.appointment
   end
-  def captcha_solver()
+
+  def captcha_solver
     @scenario.captcha_solver
   end
-  def engine()
+
+  def engine
     @scenario.engine
   end
 
@@ -70,44 +73,47 @@ class Step
     SpanishRobot::Mailer.send_mail(subject: subject, body: body)
   end
 
-  def save_page()
-    path = "#{@FolderToSave}/#{mytime}-#{name}.html"
+  def save_page
+    path = "#{@folder_to_save}/html_pages/#{mytime}-#{name}.html"
     s.save_page(path)
     puts "Saved html to #{path}"
   end
 
-  def save_and_open_page()
-    path = "#{@FolderToSave}/#{mytime}-#{name}.html"
+  def save_and_open_page
+    path = "#{@folder_to_save}/html_pages/#{mytime}-#{name}.html"
     s.save_and_open_page(path)
-    puts "Saved html to #{path}"
-  end
-  def save_screenshot()
-    s.save_screenshot
-    puts "Saved png to root folder"
-  end
-  def save_and_open_screenshot()
-    s.save_and_open_screenshot
-    puts "Saved png to root folder and open it"
+    puts "Save html to #{path} and open it"
   end
 
-  def step()
-    puts "Define step method"
+  def save_screenshot
+    path = "#{@folder_to_save}/screenshots/#{mytime}-#{name}.png"
+    s.save_screenshot(path)
+    puts "Saved png to #{path}"
   end
 
-  def on_start()
+  def save_and_open_screenshot
+    path = "#{@folder_to_save}/screenshots/#{mytime}-#{name}.png"
+    s.save_and_open_screenshot(path)
+    puts "Save png to #{path} and open it"
+  end
+
+  def step
+    puts 'Define step method'
+  end
+
+  def on_start
     puts "START STEP #{name}"
   end
 
-  def on_finish()
+  def on_finish
     puts "SUCCESS STEP #{name}"
   end
 
   def fail_and_exit(message)
     puts "Step #{name} failed with message - #{message}"
-    puts "exit now"
+    puts 'exit now'
     exit(1)
   end
-
 end
 
 class Step0 < Step
