@@ -15,12 +15,12 @@ module Mailer
   }
 
   def self.send_mail(args)
-  	Pony.mail(
-  	  to: ENV['PONY_MAIL'],
-  	  from: ENV['PONY_MAIL'],
-  	  subject: args[:subject],
-  	  body: args[:body]
-  	)
+    Pony.mail(
+      to: ENV['PONY_MAIL'],
+      from: ENV['PONY_MAIL'],
+      subject: args[:subject],
+      body: args[:body]
+    )
   end
 end # module Mailer
 
