@@ -2,14 +2,14 @@ require_relative '../captchas'
 
 RSpec.describe RuCaptchaSolver do
   before do
-  	  @s = RuCaptchaSolver.new
+  	 @s = RuCaptchaSolver.new
   end
 
   describe '#solve' do
     it 'solves test image #1 correctly' do
       expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
     end
-  end  
+  end
 
 end
 
@@ -28,6 +28,6 @@ RSpec.describe CaptchaSolverByHand do
     skip 'solves captcha in manual mode' do
       expect(@s.solve 'spec/captchas/captcha_test_1.jpg').to eq 'BCAXBE'
     end
-  end  
+  end
 
 end

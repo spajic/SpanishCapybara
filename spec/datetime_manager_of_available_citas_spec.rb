@@ -20,7 +20,7 @@ RSpec.describe DatetimeManagerOfAvailableCitas do
   	  it 'returns false' do
         expect(@dm.has_appropriate_datetime?).to eq false
       end
-  	end  
+  	end
 
   	describe '#get_appropriate_datetimes' do
   	  it 'returns []' do
@@ -32,7 +32,7 @@ RSpec.describe DatetimeManagerOfAvailableCitas do
   	  it 'returns nil' do
         expect(@dm.get_first_appropriate_cita_number).to eq nil
       end
-  	end  
+  	end
   end
 
   context 'when dates of citas are modern' do
@@ -47,7 +47,7 @@ RSpec.describe DatetimeManagerOfAvailableCitas do
   	  it 'returns true' do
         expect(@dm.has_appropriate_datetime?).to eq true
       end
-  	end  
+  	end
 
   	describe '#get_appropriate_datetimes' do
   	  it 'returns array of datetimes' do
