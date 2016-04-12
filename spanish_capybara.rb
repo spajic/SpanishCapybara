@@ -7,7 +7,8 @@ require_relative 'clients'
 require_relative 'command_line_options'
 require_relative 'datetime_manager_of_available_citas'
 require_relative 'mailer'
-require_relative 'captchas'
+require_relative 'captcha_solver_rucaptcha'
+require_relative 'captcha_solver_manual'
 
 def mytime
   DateTime.now.to_time
@@ -607,7 +608,7 @@ unless appointment
 end
 
 #captcha_solver = CaptchaSolverByHand.new
-captcha_solver = RuCaptchaSolver.new
+captcha_solver = CaptchaSolverRucaptcha.new
 
 steps_barcelona_extranjero = [
   Step0.new("0 - visit site"),
