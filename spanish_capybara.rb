@@ -236,7 +236,7 @@ class FillPassportIncidencia < Step
     s.fill_in('txtNieAux', :with => appointment.pasport)
     s.fill_in('txtDesCitado', :with => appointment.name)
     captcha_path = "CapybaraStash/captchas/#{Time.now} r#{rand(1000)}captcha.jpg"
-    s.driver.save_screenshot(captcha_path, :selector => '#contenedorCapturador img')
+    s.driver.save_screenshot(captcha_path, :selector => '#contenedorCapturador')
     s.fill_in('txtCaptcha', :with => captcha_solver.solve(captcha_path))
     s.click_on('Aceptar')
   end
@@ -255,8 +255,9 @@ class FillPassportProrroga < Step
     s.fill_in('txtAnnoCitado', with: appointment.year_of_birth)
     s.select appointment.country
     captcha_path = "CapybaraStash/captchas/#{Time.now} r#{rand(1000)}captcha.jpg"
-    s.driver.save_screenshot(captcha_path, selector: '#contenedorCapturador img')
-    s.fill_in('txtCaptcha', with: captcha_solver.solve(captcha_path))
+    sleep(3)
+    s.driver.save_screenshot(captcha_path, selector: "img[id='recaptcha_challenge_image']")
+    s.fill_in('recaptcha_response_field', with: captcha_solver.solve(captcha_path))
     s.click_on('Aceptar')
   end
 end
@@ -607,7 +608,7 @@ unless appointment
   exit(1)
 end
 
-#captcha_solver = CaptchaSolverByHand.new
+#captcha_solver = CaptchaSolverManual.new
 captcha_solver = CaptchaSolverRucaptcha.new
 
 steps_barcelona_extranjero = [
